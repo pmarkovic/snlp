@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.random import Generator, PCG64
+import matplotlib.pyplot as plt
 
 G = Generator(PCG64())
 
@@ -23,4 +24,15 @@ def plot_stick_lengths(stick_lengths:np.array,
   Plots -log2(sticks)
   :param sticks: list of stick lenghts
   """
-  pass
+  
+  rf = [(r+1, f) for r, f in enumerate(stick_lengths)]
+  rs, fs = zip(*rf)
+
+  plt.clf()
+  plt.xscale('log')
+  plt.yscale('log')
+  plt.title('Zipf plot')
+  plt.xlabel('rank')
+  plt.ylabel('frequency')
+  plt.plot(rs, fs, 'r-')
+  plt.show()
