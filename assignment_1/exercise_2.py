@@ -24,6 +24,8 @@ def plot_stick_lengths(stick_lengths:np.array,
   Plots -log2(sticks)
   :param sticks: list of stick lenghts
   """
+
+  # TODO
   
   rf = [(r+1, f) for r, f in enumerate(stick_lengths)]
   rs, fs = zip(*rf)
