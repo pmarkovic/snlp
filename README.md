@@ -1,2 +1,4 @@
-# snlp
-Work for statistical nlp class
+# Statistical NLP class
+
+## Assignment 1
+
