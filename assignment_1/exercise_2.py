@@ -25,10 +25,12 @@ def plot_stick_lengths(stick_lengths:np.array,
   :param sticks: list of stick lenghts
   """
 
-  # TODO
-  
   rf = [(r+1, f) for r, f in enumerate(stick_lengths)]
   rs, fs = zip(*rf)
+
+  m = stick_lengths[0]
+  zipfs = [(r, m/pow(alpha+r, B)) for r in range(1, len(stick_lengths)+1)]
+  rz, rzf = zip(*zipfs)
 
   plt.clf()
   plt.xscale('log')
@@ -36,5 +38,6 @@ def plot_stick_lengths(stick_lengths:np.array,
   plt.title('Zipf plot')
   plt.xlabel('rank')
   plt.ylabel('frequency')
-  plt.plot(rs, fs, 'r-')
+  plt.plot(rs, fs, 'ro')
+  plt.plot(rz, rzf, 'bo')
   plt.show()
