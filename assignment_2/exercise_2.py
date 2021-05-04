@@ -88,11 +88,3 @@ def plot_most_frequent(ngrams, start=None) -> str:
     plt.show()
 
     return ','.join(reversed(top_20_keys[0].split('|')))
-
-if __name__ == "__main__":
-    file = open("data/orient_express.txt", "r")
-    text = file.read()
-
-    tokens = preprocess(text)
-    probs_uni = find_ngram_probs(tokens, model="unigram")
-    start = plot_most_frequent(probs_uni, start=None)
