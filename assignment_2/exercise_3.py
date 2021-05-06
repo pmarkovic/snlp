@@ -1,5 +1,6 @@
 import numpy as np
 from typing import Dict, List
+from collections import defaultdict
 
 
 def train_test_split(corpus:List, test_size:float) -> (List, List):
@@ -22,7 +23,42 @@ def relative_frequencies(tokens:List, model='unigram') -> dict:
     :param model: the identifier of the model ('unigram, 'bigram', 'trigram')
     :return: a dictionary with the ngrams as keys and the relative frequencies as values
     """
-    return {}
+
+    if model == "unigram":
+        n = 0
+    elif model == "bigram":
+        n = 1
+        tokens.append(tokens[0])
+    elif model == "trigram":
+        n = 2
+        tokens.append(tokens[0])
+        tokens.append(tokens[1])
+    else:
+        print("ERROR! Unsupported model!")
+        
+        return False
+
+    # Calculate frequencies
+    rel_freq = defaultdict(float)
+    for i in range(n, len(tokens)):
+        if n > 0:
+            condition = ','.join(tokens[i-n:i]) 
+            rel_freq[f"{tokens[i]}|{condition}"] += 1
+        else:
+            rel_freq[tokens[i]] += 1
+
+    # Calculate probabilities
+    num_ngrams = len(tokens) - n
+    for key, value in rel_freq.items():
+        rel_freq[key] = value / num_ngrams
+
+    if model == "bigram":
+        tokens.pop()
+    elif model == "trigram":
+        tokens.pop()
+        tokens.pop()
+
+    return rel_freq
 
 
 def pp(lm:Dict, rfs:Dict) -> float:
