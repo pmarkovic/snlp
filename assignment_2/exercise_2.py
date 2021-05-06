@@ -61,6 +61,12 @@ def find_ngram_probs(tokens, model='unigram') -> dict:
             probs[key] = value / cond_words[condition]
         else:
             probs[key] = value / num_tokens
+
+    if model == "bigram":
+        tokens.pop()
+    elif model == "trigram":
+        tokens.pop()
+        tokens.pop()
         
     return probs
 

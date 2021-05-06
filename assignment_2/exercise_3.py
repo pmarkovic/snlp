@@ -10,7 +10,9 @@ def train_test_split(corpus:List, test_size:float) -> (List, List):
     :param test_size: the size of the training corpus
     :return: the train and test set of the corpus
     """
-    return [], []
+    sep_point = int(len(corpus)*(1-test_size))
+
+    return corpus[:sep_point], corpus[sep_point:]
 
 
 def relative_frequencies(tokens:List, model='unigram') -> dict:
