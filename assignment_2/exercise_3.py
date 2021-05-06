@@ -1,5 +1,7 @@
+import math
 import numpy as np
 from typing import Dict, List
+import matplotlib.pyplot as plt
 from collections import defaultdict
 
 
@@ -69,7 +71,12 @@ def pp(lm:Dict, rfs:Dict) -> float:
     :param rfs: the relative frequencies
     :return: a perplexity score
     """
-    return np.NINF
+
+    calc_sum = 0
+    for key, value in rfs.items():
+        calc_sum += value * math.log2(lm[key])
+
+    return math.pow(2, -calc_sum)
 
 
 def plot_pps(pps:List) -> None:
@@ -78,3 +85,9 @@ def plot_pps(pps:List) -> None:
     :param pps: a list of perplexity scores
     :return:
     """
+    models = ["unigram", "bigram", "trigram"]
+
+    fig = plt.figure(figsize=(4,2))
+    ax = fig.add_axes([0,0,1,1])
+    ax.bar(models, pps)
+    plt.show()
