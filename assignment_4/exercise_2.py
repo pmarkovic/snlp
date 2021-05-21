@@ -1,3 +1,4 @@
+import math
 from Bio import SeqIO
 from collections import Counter
 import numpy as np
@@ -51,6 +52,21 @@ def get_k_mers_24(genome_red_loc: Path, k: int, tandem_repeats=False) -> List[st
     :return: a list of n-mers
     """
 
+    sequence = SeqIO.parse(genome_red_loc.absolute(), 'fasta')
+    mers = []
+
+    for s in list(sequence):
+        for nuc in s.seq:
+            if tandem_repeats and nuc.islower():
+                mers.append(nuc)
+            elif not tandem_repeats and nuc.isupper():
+                mers.append(nuc)
+
+    mers = ''.join(mers)
+    mers = [mers[ind:ind+k] for ind in range(0, len(mers)-k+1)]
+
+    return mers
+
 
 def k_mer_statistics(genome_red_loc: Path, K: int, delta=1.e-10) -> Tuple:
     """ Calculates relative k-mer frequencies and conditional k-mer probabilities 
@@ -101,6 +117,32 @@ def k_mer_statistics_24(genome_red_loc: Path, K: int, tandem_repeats=False, delt
     :return: lists of relative frequencies and conditional probabilities
     """
 
+    rel_freqs, cond_probs = [], []
+
+    for k in range(1, K+1):
+        freqs, probs = defaultdict(float), defaultdict(float)
+        k_mers = get_k_mers_24(genome_red_loc, k)
+        num_k_mers = len(k_mers)
+
+        # Count
+        for mer in k_mers:
+            freqs[mer] += 1
+        
+        # Calc relative freqs
+        for key in freqs.keys():
+            freqs[key] /= num_k_mers
+
+            if k == 1:
+                probs[key] /= num_k_mers
+            else:
+                condition = "|".join([key[-1], key[:-1]])
+                probs[condition] = freqs[key] / rel_freqs[-1][key[:-1]]
+                
+        rel_freqs.append(freqs)
+        cond_probs.append(probs)
+
+    return rel_freqs, cond_probs
+
 
 def conditional_entropy(rel_freqs: Dict, cond_probs: Dict) -> float:
     """ Calculates the conditional entropy of a corpus given by relative k-mer frequencies
@@ -110,6 +152,18 @@ def conditional_entropy(rel_freqs: Dict, cond_probs: Dict) -> float:
     :param cond_probs: (a dictionary of) conditional probabilities
     :return: the conditional entropy of the corpus
     """
+    entropy = 0.0
+
+    for key, value in rel_freqs.items():
+        if len(key) > 1:
+            condition = "|".join([key[-1], key[:-1]])
+            entropy += value * math.log2(cond_probs[condition])
+        else:
+            entropy += value * math.log2(cond_probs[key])
+        
+        print(entropy)
+    
+    return -1.0 * entropy
 
 
 def plot_k_mers(rel_freqs: List[Dict], n=10, k=5):
@@ -136,8 +190,14 @@ def plot_conditional_entropies(H_ks:List[float]):
     :param H_ks: the conditional entropy scores
     """
 
+    k_values = range(1, len(H_ks)+1)
+
+    plt.figure(8, 10)
+    plt.bar(k_values, H_ks)
+    plt.show()
+
 
 if __name__ == "__main__":
     genome_red_loc = Path("data/genome_reduced.fa")
 
-    k_mer_statistics(genome_red_loc, 5)
+    get_k_mers_24(genome_red_loc, k=5, tandem_repeats=False)
