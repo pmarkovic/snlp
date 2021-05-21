@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from typing import Dict, List, Tuple
+from collections import defaultdict
+import matplotlib.pyplot as plt
 
 
 def sample_records(genome_loc: Path, genome_red_loc: Path, num_records: int):
@@ -32,6 +34,12 @@ def get_k_mers(genome_red_loc: Path, k: int) -> List[str]:
     :return: a list of n-mers
     """
 
+    sequence = SeqIO.parse(genome_red_loc.absolute(), 'fasta')
+    sequence = ''.join([str(s.seq).strip().upper() for s in list(sequence)])
+    mers = [sequence[ind:ind+k] for ind in range(0, len(sequence)-k+1)]
+
+    return mers
+
 
 def get_k_mers_24(genome_red_loc: Path, k: int, tandem_repeats=False) -> List[str]:
     """ Samples k-mers from a fasta file (preferrably the reduced one), but this time 
@@ -53,6 +61,32 @@ def k_mer_statistics(genome_red_loc: Path, K: int, delta=1.e-10) -> Tuple:
     :param delta: threshold for probability mass loss, defaults to 1.e-10
     :return: lists of relative frequencies and conditional probabilities
     """
+    
+    rel_freqs, cond_probs = [], []
+
+    for k in range(1, K+1):
+        freqs, probs = defaultdict(float), defaultdict(float)
+        k_mers = get_k_mers(genome_red_loc, k)
+        num_k_mers = len(k_mers)
+
+        # Count
+        for mer in k_mers:
+            freqs[mer] += 1
+        
+        # Calc relative freqs
+        for key in freqs.keys():
+            freqs[key] /= num_k_mers
+
+            if k == 1:
+                probs[key] /= num_k_mers
+            else:
+                condition = "|".join([key[-1], key[:-1]])
+                probs[condition] = freqs[key] / rel_freqs[-1][key[:-1]]
+                
+        rel_freqs.append(freqs)
+        cond_probs.append(probs)
+
+    return rel_freqs, cond_probs
 
 
 def k_mer_statistics_24(genome_red_loc: Path, K: int, tandem_repeats=False, delta=1.e-10) -> Tuple:
@@ -86,9 +120,24 @@ def plot_k_mers(rel_freqs: List[Dict], n=10, k=5):
     :param k: the k of k-mers
     """
 
+    for i in range(k):
+        freqs = rel_freqs[i]
+        top_n_keys = sorted(freqs, key=freqs.get, reverse=True)[:n]
+        top_n_values = [freqs[key] for key in top_n_keys]
+
+        plt.figure(figsize=(8,10))
+        plt.plot(top_n_keys, top_n_values)
+        plt.show()
+
 
 def plot_conditional_entropies(H_ks:List[float]):
     """ Plots conditional entropy vs. k-mer length
 
     :param H_ks: the conditional entropy scores
     """
+
+
+if __name__ == "__main__":
+    genome_red_loc = Path("data/genome_reduced.fa")
+
+    k_mer_statistics(genome_red_loc, 5)
