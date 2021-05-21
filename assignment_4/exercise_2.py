@@ -94,7 +94,7 @@ def k_mer_statistics(genome_red_loc: Path, K: int, delta=1.e-10) -> Tuple:
             freqs[key] /= num_k_mers
 
             if k == 1:
-                probs[key] /= num_k_mers
+                probs[key] = freqs[key]
             else:
                 condition = "|".join([key[-1], key[:-1]])
                 probs[condition] = freqs[key] / rel_freqs[-1][key[:-1]]
@@ -121,7 +121,7 @@ def k_mer_statistics_24(genome_red_loc: Path, K: int, tandem_repeats=False, delt
 
     for k in range(1, K+1):
         freqs, probs = defaultdict(float), defaultdict(float)
-        k_mers = get_k_mers_24(genome_red_loc, k)
+        k_mers = get_k_mers_24(genome_red_loc, k, tandem_repeats)
         num_k_mers = len(k_mers)
 
         # Count
@@ -133,7 +133,7 @@ def k_mer_statistics_24(genome_red_loc: Path, K: int, tandem_repeats=False, delt
             freqs[key] /= num_k_mers
 
             if k == 1:
-                probs[key] /= num_k_mers
+                probs[key] = freqs[key]
             else:
                 condition = "|".join([key[-1], key[:-1]])
                 probs[condition] = freqs[key] / rel_freqs[-1][key[:-1]]
@@ -160,8 +160,6 @@ def conditional_entropy(rel_freqs: Dict, cond_probs: Dict) -> float:
             entropy += value * math.log2(cond_probs[condition])
         else:
             entropy += value * math.log2(cond_probs[key])
-        
-        print(entropy)
     
     return -1.0 * entropy
 
@@ -179,7 +177,7 @@ def plot_k_mers(rel_freqs: List[Dict], n=10, k=5):
         top_n_keys = sorted(freqs, key=freqs.get, reverse=True)[:n]
         top_n_values = [freqs[key] for key in top_n_keys]
 
-        plt.figure(figsize=(8,10))
+        plt.figure(figsize=(10,8))
         plt.plot(top_n_keys, top_n_values)
         plt.show()
 
@@ -192,12 +190,23 @@ def plot_conditional_entropies(H_ks:List[float]):
 
     k_values = range(1, len(H_ks)+1)
 
-    plt.figure(8, 10)
+    plt.figure(figsize=(8,10))
     plt.bar(k_values, H_ks)
     plt.show()
 
 
 if __name__ == "__main__":
     genome_red_loc = Path("data/genome_reduced.fa")
+    K = 1
 
-    get_k_mers_24(genome_red_loc, k=5, tandem_repeats=False)
+    H_ks = []
+
+    rel_freqs, cond_probs = k_mer_statistics(genome_red_loc, K=K)
+
+    for k in range(K):
+        H_k = conditional_entropy(rel_freqs[k], cond_probs[k])
+        print("{}-mer cond. entropy is {}".format(k+1, H_k))
+        H_ks.append(H_k)
+
+    # plot
+    plot_conditional_entropies(H_ks)
