@@ -28,6 +28,7 @@ class KneserNey:
 
         self.trigrams = Counter([f"{tokens[i]},{tokens[i+1]},{tokens[i+2]}" for i in range(len(tokens)-2)])
         self.bigrams = Counter([f"{tokens[i]},{tokens[i+1]}" for i in range(len(tokens)-1)])
+        self.unigrams = Counter(tokens)
         self.c_trigrams_end = Counter([self._convert(key, True, False) for key in self.trigrams.keys()])
         self.c_trigrams_middle = Counter([self._convert(key, True, True) for key in self.trigrams.keys()])
         self.c_bigrams_end = Counter([self._convert(key, True, False) for key in self.bigrams.keys()])
@@ -36,8 +37,8 @@ class KneserNey:
         self.c_bigrams_start = Counter([self._convert(key, False, True) for key in self.bigrams.keys()])
         
 
-    def _convert(self, s, start=False, end=False):
-        words = s.split(',')
+    def _convert(self, s, start=False, end=False, split=','):
+        words = s.split(f'{split}')
 
         if start:
             words[0] = '*'
@@ -50,16 +51,24 @@ class KneserNey:
         return []
 
     def get_params(self, trigram) -> None:
+        first = self.trigrams[self._convert(trigram, split=' ')]
+        second = self.bigrams[self._convert(','.join(trigram.split(' ')[:-1]))]
+        third = self.c_trigrams_end[self._convert(trigram, True, False, ' ')]
+        fourth = self.c_trigrams_middle[self._convert(trigram, True, True, ' ')]
+        fifth = self.c_bigrams_end[self._convert(','.join(trigram.split(' ')[1:]), True, False)]
+        sixth = self.c_bigrams_all['*,*']
+        seventh = self.c_trigrams_start[self._convert(trigram, False, True, ' ')]
+        eight = self.c_bigrams_start[self._convert(','.join(trigram.split(' ')[1:]), False, True)]
+        ninth = self.unigrams[trigram.split(' ')[1]]
+
         print(f"Input: {trigram}")
-        print(f"N(w1w2w3)")
-
-
-if __name__ == "__main__":
-    file = open("data/alice_in_wonderland.txt", "r")
-    text = file.read()
-
-    # TODO: Preprocess text
-    tokens = preprocess(text)
-
-    model = KneserNey(tokens, 3, 0.75)
-    print(model.c_bigrams_start.most_common(10))
+        print(f"N(w1w2w3): {first}")
+        print(f"N(w1w2): {second}")
+        print(f"N+(*w2w3): {third}")
+        print(f"N+(*w2*): {fourth}")
+        print(f"N+(*w3): {fifth}")
+        print(f"N+(**): {sixth}")
+        print(f"N+(w1w2*): {seventh}")
+        print(f"N+(w2*): {eight}")
+        print(f"lambda(w1w2): {self.d / second * seventh}")
+        print(f"lambda(w2): {self.d / ninth * eight}")
