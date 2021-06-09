@@ -8,6 +8,10 @@ def train_test_split_data(text: List[str], test_size=0.2):
     :return: train and test set
     """
 
+    split_point = int(len(text) * (1 - test_size))
+
+    return text[:split_point], text[split_point:]
+
 def k_validation_folds(text: List[str], k_folds=10):
     """ Splits a corpus into k_folds cross-validation folds
     :param text: input corpus
