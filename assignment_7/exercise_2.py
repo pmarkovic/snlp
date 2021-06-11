@@ -1,7 +1,7 @@
 from os import set_blocking
 import string
 import re
-from collections import Counter, defaultdict
+from collections import Counter
 from typing import List, Tuple
 
 
@@ -72,3 +72,4 @@ class KneserNey:
         print(f"N+(w2*): {eight}")
         print(f"lambda(w1w2): {self.d / second * seventh}")
         print(f"lambda(w2): {self.d / ninth * eight}")
+
