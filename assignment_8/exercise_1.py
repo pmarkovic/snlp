@@ -23,7 +23,8 @@ def plot_category_frequencies(category_frequencies: Counter):
     plt.loglog(x, y)
 
 def plot_pmis(category: str, most_common: List[str], pmis: List[float]):
-    pass
+    plt.title = f"Category: {category}"
+    plt.plot(most_common, pmis)
 
 def plot_dfs(terms: List[str], dfs: List[int]):
     plt.plot(terms, dfs)
@@ -67,7 +68,21 @@ class Corpus:
         return numerator / denominator
 
     def pmi(self, category: str, term: str) -> float:
-        raise NotImplementedError
+        p_category = self.category_freq[category] / len(self.documents)
+        p_term = 0.0
+        p_joint = 0.0
+
+        for document in self.documents:
+            if term in document.tokens:
+                p_term += 1
+
+                if category == document.category:
+                    p_joint += 1
+        
+        p_term /= len(self.documents)
+        p_joint /= len(self.documents)
+
+        return np.log2(p_joint / (p_category * p_term))
         
     def term_frequencies(self, category) -> Counter:
         terms = []
