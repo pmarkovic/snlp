@@ -2,6 +2,7 @@ from collections import Counter
 from pathlib import Path
 import nltk
 from nltk import RegexpTokenizer
+from nltk.util import pr
 nltk.download('reuters')
 nltk.download('stopwords')
 from nltk.corpus import reuters, stopwords
@@ -13,13 +14,19 @@ from typing import List
 
 
 def plot_category_frequencies(category_frequencies: Counter):
-    pass
+    x, y = [], []
+
+    for ind, pair in enumerate(category_frequencies.most_common()):
+        x.append(ind)
+        y.append(pair[1])
+
+    plt.loglog(x, y)
 
 def plot_pmis(category: str, most_common: List[str], pmis: List[float]):
     pass
 
 def plot_dfs(terms: List[str], dfs: List[int]):
-    pass
+    plt.plot(terms, dfs)
 
 
 class Document:
@@ -28,6 +35,8 @@ class Document:
         # assume only 1 category per document for simplicity
         self.category = categories[0]
         self.stop_words = stop_words
+        self.tokens = [word.lower().strip() for word in text.split(' ') 
+                                                if word.lower() not in stop_words and word != '']
 
 
 class Corpus:
@@ -39,13 +48,36 @@ class Corpus:
         """
         :param category: None if df is calculated over all categories, else one of the reuters.categories
         """
-        raise NotImplementedError
+        numerator = 0
+        denominator = 0
+
+        if category is not None:
+            denominator = self.category_freq[category]
+
+            for document in self.documents:
+                if document.category == category and term in document.tokens:
+                    numerator += 1
+        else:
+            denominator = sum(self.category_freq.values())
+
+            for document in self.documents:
+                if term in document.tokens:
+                    numerator += 1
+
+        return numerator / denominator
 
     def pmi(self, category: str, term: str) -> float:
         raise NotImplementedError
         
     def term_frequencies(self, category) -> Counter:
-        raise NotImplementedError
+        terms = []
+        for document in self.documents:
+            if document.category == category:
+                terms += set(document.tokens)
+        
+        return Counter(terms)
 
     def category_frequencies(self):
-        raise NotImplementedError
+        self.category_freq = Counter([document.category for document in self.documents])
+
+        return self.category_freq
