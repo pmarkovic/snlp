@@ -21,6 +21,8 @@ def plot_category_frequencies(category_frequencies: Counter):
         y.append(pair[1])
 
     plt.loglog(x, y)
+    plt.xlabel("Categories")
+    plt.ylabel("Frequencies")
 
 def plot_pmis(category: str, most_common: List[str], pmis: List[float]):
     plt.title = f"Category: {category}"
